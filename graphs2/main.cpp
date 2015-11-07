@@ -10,6 +10,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <queue>
+#include <stack>
 using namespace std;
 
 class Vertex
@@ -34,7 +35,7 @@ public:
     void addEdge(int a,int b)
     {
         _graph[a]->_neighbours.insert(b);
-        _graph[b]->_neighbours.insert(a);
+        //_graph[b]->_neighbours.insert(a);
     }
     void visit(Vertex *v)
     {
@@ -199,26 +200,80 @@ public:
         Vertex *curr = _graph.begin()->second;
         return hasCycleUtil(-1,curr,visited,recurStack);
     }
+    
+    void topologySortUtil(Vertex *curr,unordered_set<int>& visited,stack<int> &topoStack)
+    {
+        cout<<"visiting"<<curr->key<<endl;
+        visited.insert(curr->key);
+        for(auto cn:curr->_neighbours)
+        {
+            if(visited.find(cn) == visited.end())
+            {
+                Vertex *neighbour = _graph[cn];
+                topologySortUtil(neighbour,visited,topoStack);
+            }
+        }
+        
+        topoStack.push(curr->key);
+    }
+    
+    vector<int> topologySort()
+    {
+        vector<int> result;
+        
+        
+        if(_graph.empty())
+        {
+            return result;
+        }
+        
+        stack<int> topoStack;
+        unordered_set<int> visited;
+        for(auto &gn: _graph)
+        {
+            Vertex *curr = gn.second;
+            
+            if(visited.find(gn.first) == visited.end())
+            {
+                topologySortUtil(curr,visited,topoStack);
+            }
+        }
+        
+        while(!topoStack.empty())
+        {
+            result.push_back(topoStack.top());
+            topoStack.pop();
+        }
+        return result;
+    }
 private:
     unordered_map<int, Vertex*> _graph;
 };
 
 int main(int argc, const char * argv[]) {
-    Graph g(4);
+    Graph g(6);
     
-    g.addEdge(0, 1);
-    g.addEdge(0, 2);
-    g.addEdge(1, 2);
-    g.addEdge(2, 0);
-    g.addEdge(2, 3);
-    g.addEdge(3, 3);
+    g.addEdge(5,2);
+    g.addEdge(5,0);
+    g.addEdge(4,0);
+    g.addEdge(4,1);
+    g.addEdge(2,3);
+    g.addEdge(3,1);
     
-    
+    /*
     g.DFS();
     bool isb = g.isBipartite();
     cout<<"Is graph bipartite"<<(isb?" yes": " no")<<endl;
     
     bool hc=g.hasCycle();
     cout<<"Graph has cycle? "<<(hc?"yes":"no")<<endl;
+    */
+    
+    vector<int> topo = g.topologySort();
+    for(auto i:topo)
+    {
+        cout<<i<<endl;
+    }
+    
     return 0;
 }
